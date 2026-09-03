@@ -1,0 +1,22 @@
+from django.contrib import admin
+
+from .models import Deposit, FundingMethod, User
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ["id", "email", "country", "created_at", "kyc_status"]
+    list_filter = ["country", "kyc_status"]
+    search_fields = ["id", "email"]
+
+
+@admin.register(FundingMethod)
+class FundingMethodAdmin(admin.ModelAdmin):
+    list_display = ["id", "name", "kind", "currency", "settlement_hours", "fee_pct"]
+
+
+@admin.register(Deposit)
+class DepositAdmin(admin.ModelAdmin):
+    list_display = ["id", "user", "method", "amount_usd", "status", "created_at", "completed_at"]
+    list_filter = ["status", "method"]
+    search_fields = ["id", "user__id"]

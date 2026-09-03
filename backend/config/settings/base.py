@@ -1,7 +1,7 @@
 """
-Base settings, shared por todos los entornos. Los settings de cada entorno
-(local, ...) hacen `from .base import *` y pisan lo que necesiten. Ver
-PLAN.md en la raíz del repo para el porqué de este layout.
+Base settings, shared by every environment. Environment-specific settings
+(local, ...) do `from .base import *` and override what they need. See
+PLAN.md at the repo root for the reasoning behind this layout.
 """
 
 from pathlib import Path
@@ -39,7 +39,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    # apps propias del proyecto, se van agregando a medida que se crean
+    "experiments",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -81,6 +81,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": env.db("DATABASE_URL"),
 }
+
+# Folder with users.json / funding_methods.json / deposits_historicos.json.
+# In Docker it's mounted as a volume at /data (see docker-compose.yml); when
+# running locally without Docker, BASE_DIR is backend/ and its parent is the
+# repo root.
+DATA_DIR = Path(env("DATA_DIR", default=str(BASE_DIR.parent / "data")))
 
 
 # Password validation
