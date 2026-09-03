@@ -54,6 +54,33 @@ class FundingMethod(models.Model):
         return self.id
 
 
+class WebhookEvent(models.Model):
+    """Raw log of every webhook received, one row per event_id. Only for
+    auditing/debugging — the experiment result is read from Deposit, not
+    from here. event_id as primary key is what makes duplicate delivery
+    (the provider's at-least-once guarantee) a no-op: a retried event_id
+    just fails to insert a second row."""
+
+    class Type(models.TextChoices):
+        RECEIVED = "deposit.received", "Received"
+        COMPLETED = "deposit.completed", "Completed"
+        FAILED = "deposit.failed", "Failed"
+
+    event_id = models.CharField(max_length=32, primary_key=True)
+    type = models.CharField(max_length=32, choices=Type.choices)
+    occurred_at = models.DateTimeField()
+    deposit_id = models.CharField(max_length=32)
+    user_id = models.CharField(max_length=32)
+    method_id = models.CharField(max_length=32)
+    amount_usd = models.DecimalField(max_digits=12, decimal_places=2)
+    currency = models.CharField(max_length=8)
+    country = models.CharField(max_length=2)
+    received_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.event_id
+
+
 class Deposit(models.Model):
     """One row per deposit_id. Populated from deposits_historicos.json (all
     with status=completed) and from the provider's webhooks during the

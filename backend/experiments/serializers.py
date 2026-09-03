@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from .assignment import variant_for
 from .methods import available_methods_for, recommend_method
-from .models import ExperimentAssignment, FundingMethod, User
+from .models import Deposit, ExperimentAssignment, FundingMethod, User, WebhookEvent
 
 
 class FundingMethodSerializer(serializers.ModelSerializer):
@@ -49,3 +49,78 @@ class FundingScreenSerializer(serializers.Serializer):
             "recommended_method_id": recommended.id if recommended else None,
             "methods": methods,
         }
+
+
+class DepositWebhookDataSerializer(serializers.Serializer):
+    deposit_id = serializers.CharField()
+    user_id = serializers.CharField()
+    method_id = serializers.CharField()
+    amount_usd = serializers.DecimalField(max_digits=12, decimal_places=2)
+    currency = serializers.CharField()
+    country = serializers.CharField()
+
+
+class DepositWebhookSerializer(serializers.Serializer):
+    """Mirrors the provider's payload (simulator/PROVIDER.md). `.save()`
+    handles everything the provider warns about: duplicate event_id,
+    duplicate deposit_id under a new event_id, and out-of-order delivery.
+    See PLAN.md #4 for the reasoning."""
+
+    _DEPOSIT_STATUS_BY_TYPE = {
+        WebhookEvent.Type.RECEIVED: Deposit.Status.RECEIVED,
+        WebhookEvent.Type.COMPLETED: Deposit.Status.COMPLETED,
+        WebhookEvent.Type.FAILED: Deposit.Status.FAILED,
+    }
+
+    event_id = serializers.CharField()
+    type = serializers.ChoiceField(choices=WebhookEvent.Type.choices)
+    occurred_at = serializers.DateTimeField()
+    data = DepositWebhookDataSerializer()
+
+    def create(self, validated_data):
+        event, created = WebhookEvent.objects.get_or_create(
+            event_id=validated_data["event_id"],
+            defaults={
+                "type": validated_data["type"],
+                "occurred_at": validated_data["occurred_at"],
+                **validated_data["data"],
+            },
+        )
+        if not created:
+            # Same event_id we already logged — a provider retry. Nothing
+            # left to do, the first delivery already applied it.
+            return event
+
+        self._apply(event)
+        return event
+
+    def _apply(self, event):
+        user = User.objects.get(pk=event.user_id)
+
+        # Fallback assignment: a webhook implies the user must have seen
+        # their account details on the funding screen already, so if we
+        # somehow never saw that visit, enter them into the experiment now.
+        ExperimentAssignment.objects.get_or_create(
+            user=user,
+            defaults={"variant": variant_for(user.id), "assigned_at": event.occurred_at},
+        )
+
+        deposit = Deposit.objects.filter(pk=event.deposit_id).first()
+        if deposit and deposit.status in (Deposit.Status.COMPLETED, Deposit.Status.FAILED):
+            # Already terminal — a late/out-of-order event changes nothing.
+            return
+
+        status = self._DEPOSIT_STATUS_BY_TYPE[event.type]
+        Deposit.objects.update_or_create(
+            id=event.deposit_id,
+            defaults={
+                "user": user,
+                "method_id": event.method_id,
+                "amount_usd": event.amount_usd,
+                "status": status,
+                "currency": event.currency,
+                "country": event.country,
+                "created_at": deposit.created_at if deposit else event.occurred_at,
+                "completed_at": event.occurred_at if status == Deposit.Status.COMPLETED else None,
+            },
+        )
