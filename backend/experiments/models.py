@@ -5,23 +5,38 @@ class User(models.Model):
     """Mirrors data/users.json. Not Django's auth model — there's no login
     in this exercise, this is just the business entity."""
 
-    KYC_APPROVED = "approved"
-    KYC_PENDING = "pending"
-    KYC_REJECTED = "rejected"
-    KYC_STATUS_CHOICES = [
-        (KYC_APPROVED, "Approved"),
-        (KYC_PENDING, "Pending"),
-        (KYC_REJECTED, "Rejected"),
-    ]
+    class KycStatus(models.TextChoices):
+        APPROVED = "approved", "Approved"
+        PENDING = "pending", "Pending"
+        REJECTED = "rejected", "Rejected"
 
     id = models.CharField(max_length=32, primary_key=True)
     email = models.EmailField()
     country = models.CharField(max_length=2)
     created_at = models.DateTimeField()
-    kyc_status = models.CharField(max_length=16, choices=KYC_STATUS_CHOICES)
+    kyc_status = models.CharField(max_length=16, choices=KycStatus.choices)
 
     def __str__(self):
         return self.id
+
+
+class ExperimentAssignment(models.Model):
+    """One row per user who ever hit the funding screen. Created on first
+    visit and never changed afterwards — that's what makes the variant
+    sticky. See assignment.py for how the variant itself is picked."""
+
+    class Variant(models.TextChoices):
+        A = "A", "A - full list"
+        B = "B", "B - recommended method"
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, primary_key=True, related_name="experiment_assignment"
+    )
+    variant = models.CharField(max_length=1, choices=Variant.choices)
+    assigned_at = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.user_id}:{self.variant}"
 
 
 class FundingMethod(models.Model):
@@ -44,20 +59,16 @@ class Deposit(models.Model):
     with status=completed) and from the provider's webhooks during the
     experiment."""
 
-    STATUS_RECEIVED = "received"
-    STATUS_COMPLETED = "completed"
-    STATUS_FAILED = "failed"
-    STATUS_CHOICES = [
-        (STATUS_RECEIVED, "Received"),
-        (STATUS_COMPLETED, "Completed"),
-        (STATUS_FAILED, "Failed"),
-    ]
+    class Status(models.TextChoices):
+        RECEIVED = "received", "Received"
+        COMPLETED = "completed", "Completed"
+        FAILED = "failed", "Failed"
 
     id = models.CharField(max_length=32, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="deposits")
     method = models.ForeignKey(FundingMethod, on_delete=models.PROTECT, related_name="deposits")
     amount_usd = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=16, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=16, choices=Status.choices)
     currency = models.CharField(max_length=8, blank=True)
     country = models.CharField(max_length=2, blank=True)
     created_at = models.DateTimeField()

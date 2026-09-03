@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Deposit, FundingMethod, User
+from .models import Deposit, ExperimentAssignment, FundingMethod, User
 
 
 @admin.register(User)
@@ -20,3 +20,10 @@ class DepositAdmin(admin.ModelAdmin):
     list_display = ["id", "user", "method", "amount_usd", "status", "created_at", "completed_at"]
     list_filter = ["status", "method"]
     search_fields = ["id", "user__id"]
+
+
+@admin.register(ExperimentAssignment)
+class ExperimentAssignmentAdmin(admin.ModelAdmin):
+    list_display = ["user", "variant", "assigned_at"]
+    list_filter = ["variant"]
+    search_fields = ["user__id"]
