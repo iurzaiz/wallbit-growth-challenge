@@ -17,7 +17,16 @@ services:
 
   backend:
     build: ./backend
-    command: python manage.py runserver 0.0.0.0:8000
+    # migrate/load_fixtures/simulate_visits are all idempotent (upsert or
+    # get_or_create), so running them on every startup is safe — a plain
+    # `docker compose up` is enough to get to a working, browsable state.
+    command: >
+      sh -c "
+        python manage.py migrate &&
+        python manage.py load_fixtures &&
+        python manage.py simulate_visits &&
+        python manage.py runserver 0.0.0.0:8000
+      "
     volumes:
       - ./backend:/app
       - ./data:/data:ro
@@ -35,10 +44,6 @@ services:
 
   frontend:
     build: ./frontend
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
     ports:
       - "3000:3000"
 

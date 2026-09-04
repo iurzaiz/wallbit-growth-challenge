@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Wallbit — Growth challenge",
+  title: "Wallbit — Growth Engineer challenge",
   description: "Experimento de pantalla de fondeo — Wallbit growth challenge",
 };
 
@@ -29,11 +29,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </header>
         <div className="site-content">{children}</div>
         <footer className="site-footer">
-          Hecho por{" "}
+          Take home challenge para Wallbit, hecho por{" "}
           <a href="https://www.linkedin.com/in/imanol-urzaiz" target="_blank" rel="noopener noreferrer">
             Imanol Urzaiz
           </a>{" "}
-          para el growth challenge de Wallbit.
+          .
         </footer>
       </body>
     </html>

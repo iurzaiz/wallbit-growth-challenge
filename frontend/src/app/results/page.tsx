@@ -12,13 +12,19 @@ type VariantResult = {
 
 export default function ResultsPage() {
   const [results, setResults] = useState<VariantResult[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`${API_URL}/experiment/results`)
-      .then((res) => res.json())
-      .then(setResults);
+      .then((res) => {
+        if (!res.ok) throw new Error(`El servidor respondió ${res.status}.`);
+        return res.json();
+      })
+      .then(setResults)
+      .catch(() => setError("No pudimos conectar con el backend. ¿Está corriendo en localhost:8000?"));
   }, []);
 
+  if (error) return <p>{error}</p>;
   if (!results) return <p>Cargando...</p>;
 
   return (

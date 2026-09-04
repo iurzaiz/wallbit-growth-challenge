@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 export default function Home() {
   const [userId, setUserId] = useState("");
 
   return (
     <>
-      <h1>Growth challenge</h1>
-      <p>No hay login: escribí un user_id de data/users.json (ej. usr_000001) para ver su pantalla de fondeo.</p>
+      <h1>Experimento de pantalla de fondeo</h1>
+      <p>
+        No hay login: escribí un user_id o elegí uno de la lista para ver su pantalla de fondeo.
+      </p>
 
       <form
         style={{ display: "flex", gap: "0.5rem", margin: "1.5rem 0" }}
@@ -23,9 +26,14 @@ export default function Home() {
         </button>
       </form>
 
-      <a href="/results" className="btn secondary">
-        Ver resultado del experimento
-      </a>
+      <div style={{ display: "flex", gap: "0.75rem" }}>
+        <Link href="/users" className="btn secondary">
+          Ver usuarios
+        </Link>
+        <Link href="/results" className="btn secondary">
+          Ver resultado del experimento
+        </Link>
+      </div>
     </>
   );
 }

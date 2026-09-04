@@ -115,6 +115,15 @@ p {
   opacity: 0.85;
 }
 
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  opacity: 0.35;
+}
+
 .btn.secondary {
   background: transparent;
   color: var(--foreground);

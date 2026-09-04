@@ -20,6 +20,12 @@ class FundingMethodSerializer(serializers.ModelSerializer):
         fields = ["id", "name", "kind", "currency", "settlement_hours", "fee_pct"]
 
 
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "country", "kyc_status", "created_at"]
+
+
 class FundingScreenSerializer(serializers.Serializer):
     """Doubles as input (user_id) and output. `.save()` assigns the variant
     if the user hasn't visited before (or is a no-op if they have), then
