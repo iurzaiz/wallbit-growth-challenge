@@ -6,6 +6,13 @@ from .methods import available_methods_for, recommend_method
 from .models import Deposit, ExperimentAssignment, FundingMethod, User, WebhookEvent
 
 
+class VariantResultSerializer(serializers.Serializer):
+    variant = serializers.CharField()
+    assigned = serializers.IntegerField()
+    converted = serializers.IntegerField()
+    conversion_rate = serializers.FloatField()
+
+
 class FundingMethodSerializer(serializers.ModelSerializer):
     class Meta:
         model = FundingMethod

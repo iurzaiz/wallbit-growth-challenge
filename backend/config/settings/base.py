@@ -88,6 +88,10 @@ DATABASES = {
 # repo root.
 DATA_DIR = Path(env("DATA_DIR", default=str(BASE_DIR.parent / "data")))
 
+# Same idea, for simulator/scenario.json (used by the simulate_visits command
+# to backdate funding-screen visits before running simulate_provider.py).
+SCENARIO_PATH = Path(env("SCENARIO_PATH", default=str(BASE_DIR.parent / "simulator" / "scenario.json")))
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

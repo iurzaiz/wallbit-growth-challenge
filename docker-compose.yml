@@ -21,12 +21,14 @@ services:
     volumes:
       - ./backend:/app
       - ./data:/data:ro
+      - ./simulator:/simulator:ro
     ports:
       - "8000:8000"
     env_file:
       - ./backend/.env
     environment:
       - DATA_DIR=/data
+      - SCENARIO_PATH=/simulator/scenario.json
     depends_on:
       db:
         condition: service_healthy
