@@ -81,6 +81,29 @@ class WebhookEvent(models.Model):
         return self.event_id
 
 
+class TrackingEvent(models.Model):
+    """One row per funnel step. Lets us see *where* people drop off between
+    variants, not just the final conversion number — see PLAN.md #3.
+    `variant` is denormalized from the user's assignment at record time so
+    funnel queries don't need a join. `occurred_at` defaults to now but can
+    be backdated (see tracking.py / simulate_visits)."""
+
+    class EventName(models.TextChoices):
+        EXPERIMENT_ASSIGNED = "experiment_assigned", "Experiment assigned"
+        FUNDING_SCREEN_VIEWED = "funding_screen_viewed", "Funding screen viewed"
+        OTHER_METHODS_EXPANDED = "other_methods_expanded", "Other methods expanded"
+        METHOD_SELECTED = "method_selected", "Method selected"
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="tracking_events")
+    event_name = models.CharField(max_length=32, choices=EventName.choices)
+    variant = models.CharField(max_length=1, blank=True)
+    metadata = models.JSONField(blank=True, default=dict)
+    occurred_at = models.DateTimeField()
+
+    def __str__(self):
+        return f"{self.user_id}:{self.event_name}"
+
+
 class Deposit(models.Model):
     """One row per deposit_id. Populated from deposits_historicos.json (all
     with status=completed) and from the provider's webhooks during the

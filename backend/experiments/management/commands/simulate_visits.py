@@ -7,7 +7,8 @@ from django.core.management.base import BaseCommand
 from django.utils.dateparse import parse_datetime
 
 from experiments.assignment import variant_for
-from experiments.models import ExperimentAssignment, User
+from experiments.models import ExperimentAssignment, TrackingEvent, User
+from experiments.tracking import record
 
 
 class Command(BaseCommand):
@@ -45,10 +46,23 @@ class Command(BaseCommand):
             rng = random.Random(user_id)
             visited_at = first_event_at - timedelta(minutes=rng.randint(5, 180))
 
-            _, was_created = ExperimentAssignment.objects.get_or_create(
+            assignment, was_created = ExperimentAssignment.objects.get_or_create(
                 user=user,
                 defaults={"variant": variant_for(user.id), "assigned_at": visited_at},
             )
+            if was_created:
+                record(
+                    user,
+                    TrackingEvent.EventName.EXPERIMENT_ASSIGNED,
+                    variant=assignment.variant,
+                    occurred_at=visited_at,
+                )
+                record(
+                    user,
+                    TrackingEvent.EventName.FUNDING_SCREEN_VIEWED,
+                    variant=assignment.variant,
+                    occurred_at=visited_at,
+                )
             created += was_created
 
         self.stdout.write(self.style.SUCCESS(f"scenario users: {len(first_seen_at)}, newly assigned: {created}"))

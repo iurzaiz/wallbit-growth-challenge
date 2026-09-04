@@ -3,7 +3,8 @@ from rest_framework import serializers
 
 from .assignment import variant_for
 from .methods import available_methods_for, recommend_method
-from .models import Deposit, ExperimentAssignment, FundingMethod, User, WebhookEvent
+from .models import Deposit, ExperimentAssignment, FundingMethod, TrackingEvent, User, WebhookEvent
+from .tracking import record
 
 
 class VariantResultSerializer(serializers.Serializer):
@@ -39,10 +40,13 @@ class FundingScreenSerializer(serializers.Serializer):
     def create(self, validated_data):
         user = User.objects.get(pk=validated_data["user_id"])
 
-        assignment, _ = ExperimentAssignment.objects.get_or_create(
+        assignment, created = ExperimentAssignment.objects.get_or_create(
             user=user,
             defaults={"variant": variant_for(user.id), "assigned_at": timezone.now()},
         )
+        if created:
+            record(user, TrackingEvent.EventName.EXPERIMENT_ASSIGNED, variant=assignment.variant)
+        record(user, TrackingEvent.EventName.FUNDING_SCREEN_VIEWED, variant=assignment.variant)
 
         methods = available_methods_for(user.country)
         is_variant_b = assignment.variant == ExperimentAssignment.Variant.B
@@ -107,10 +111,19 @@ class DepositWebhookSerializer(serializers.Serializer):
         # Fallback assignment: a webhook implies the user must have seen
         # their account details on the funding screen already, so if we
         # somehow never saw that visit, enter them into the experiment now.
-        ExperimentAssignment.objects.get_or_create(
+        # No funding_screen_viewed here — unlike a real visit, this wasn't
+        # actually observed, just backfilled.
+        assignment, created = ExperimentAssignment.objects.get_or_create(
             user=user,
             defaults={"variant": variant_for(user.id), "assigned_at": event.occurred_at},
         )
+        if created:
+            record(
+                user,
+                TrackingEvent.EventName.EXPERIMENT_ASSIGNED,
+                variant=assignment.variant,
+                occurred_at=event.occurred_at,
+            )
 
         deposit = Deposit.objects.filter(pk=event.deposit_id).first()
         if deposit and deposit.status in (Deposit.Status.COMPLETED, Deposit.Status.FAILED):
@@ -131,3 +144,26 @@ class DepositWebhookSerializer(serializers.Serializer):
                 "completed_at": event.occurred_at if status == Deposit.Status.COMPLETED else None,
             },
         )
+
+
+class TrackEventSerializer(serializers.Serializer):
+    """The funnel steps the client can report itself (as opposed to
+    experiment_assigned/funding_screen_viewed, which the server logs on its
+    own — see FundingScreenSerializer)."""
+
+    CLIENT_EVENTS = [TrackingEvent.EventName.OTHER_METHODS_EXPANDED, TrackingEvent.EventName.METHOD_SELECTED]
+
+    user_id = serializers.CharField()
+    event_name = serializers.ChoiceField(choices=[(e.value, e.label) for e in CLIENT_EVENTS])
+    metadata = serializers.JSONField(required=False, default=dict)
+
+    def validate_user_id(self, value):
+        if not User.objects.filter(pk=value).exists():
+            raise serializers.ValidationError("User not found.")
+        return value
+
+    def create(self, validated_data):
+        user = User.objects.get(pk=validated_data["user_id"])
+        assignment = getattr(user, "experiment_assignment", None)
+        variant = assignment.variant if assignment else ""
+        return record(user, validated_data["event_name"], variant=variant, **validated_data["metadata"])

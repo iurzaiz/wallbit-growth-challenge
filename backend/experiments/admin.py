@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Deposit, ExperimentAssignment, FundingMethod, User, WebhookEvent
+from .models import Deposit, ExperimentAssignment, FundingMethod, TrackingEvent, User, WebhookEvent
 
 
 @admin.register(User)
@@ -34,3 +34,10 @@ class WebhookEventAdmin(admin.ModelAdmin):
     list_display = ["event_id", "type", "deposit_id", "occurred_at", "received_at"]
     list_filter = ["type"]
     search_fields = ["event_id", "deposit_id", "user_id"]
+
+
+@admin.register(TrackingEvent)
+class TrackingEventAdmin(admin.ModelAdmin):
+    list_display = ["user", "event_name", "variant", "occurred_at"]
+    list_filter = ["event_name", "variant"]
+    search_fields = ["user__id"]
