@@ -29,11 +29,11 @@ Ver [`README.md`](README.md).
 - Docker Compose: para levantar con `docker compose up`. Migra, carga los
   datos y backdatea las visitas en cada arranque, sin pasos manuales.
   Deje solamente el comando de webhook aparte para respetar el enunciado.
-  Esto lo agregue solamente para que sea simple levantar el proyecto.
+  Esto lo agregué solamente para que sea simple levantar el proyecto.
 
 **Dejé afuera, y por qué:**
 
-El enunciado ya avisa que estas cuatro "casi seguro no entran" (y tuvo razon),
+El enunciado ya avisa que estas cuatro "casi seguro no entran" (y tuvo razón),
 y que decidir qué queda afuera es parte de lo que evalúan. 
 Las cuatro son features reales y buenas. Pero pesan más de lo que parece:
 
@@ -48,9 +48,9 @@ Las cuatro son features reales y buenas. Pero pesan más de lo que parece:
   que signifique algo.
 - **Kill switch**: es una feature operacional (poder apagar una variante
   en producción sin esperar un deploy), no algo que haga falta para ver
-  el resultado de este experimento puntual. Esta es la que ultima que hubiese agregado.
-- **Segundo experimento en paralelo**: podria haber sido util pero no
-  me parecio algo que este experimento necesite para funcionar solo.
+  el resultado de este experimento puntual. Esta es la última que hubiese agregado.
+- **Segundo experimento en paralelo**: podría haber sido útil pero no
+  me pareció algo que este experimento necesite para funcionar solo.
 
 De las cuatro, la significancia estadística es la que más analicé,
 justamente porque el resultado (A y B casi idénticos) me generó dudas y
@@ -70,12 +70,12 @@ daría "no significativo" coincidiendo con lo que ya había concluido a ojo.
 Aun así no lo formalicé (no corrí un z-test de proporciones de verdad): el
 análisis razonado me alcanzaba para la duda puntual que tenía, y para hacerlo
 formal me hubiera excedido en cuanto al tiempo. 
-Aclaracion: por mi parte no hubiese tenido ningun problema en tomarme mas tiempo
-de lo debido para realizar el challenge solo que me parecio mas correcto obedecer
-el enunciado.
+Aclaración: por mi parte no hubiese tenido ningún problema en tomarme más
+tiempo de lo debido para realizar el challenge, solo que me pareció más
+correcto obedecer el enunciado.
 
 - Firma HMAC del webhook: el doc del proveedor dice que es opcional y no
-  cambia el resultado del experimento. Pero es obligatorio en produccion.
+  cambia el resultado del experimento. Pero es obligatorio en producción.
 - Un framework genérico para "varios experimentos": solo hay uno corriendo,
   armar algo configurable para eso me pareció sobreingeniería.
 - Login/autenticación real: el enunciado dice que asumamos que ya sabemos
@@ -211,7 +211,7 @@ verificaciones:
 2. **¿Es un artefacto de cómo elegí medir la ventana de conversión?**
     **Qué hubiera pasado con la otra opción (asignar a todos el 2026-08-01 fijo)**
 
-    La probe para comparar. Da esto:
+    La probé para comparar. Da esto:
 
     | Variante | Asignados | Convertidos | Tasa |
     |---|---|---|---|
@@ -220,7 +220,7 @@ verificaciones:
 
     Parece un hallazgo: "B convierte 9 puntos menos", pero es un espejismo. Con
     fecha fija, solo 71 de los 254 depósitos completados caen dentro de los
-    primeros 7 días de agosto; los otros 183 son gente que si depositó,
+    primeros 7 días de agosto; los otros 183 son gente que sí depositó,
     pero más tarde en el mes, y quedan contados como "no convertido" solo
     porque el calendario los agarra tarde, no porque la pantalla les haya
     fallado. 
@@ -349,16 +349,16 @@ resta.
 
 ## Uso de IA
 
-Utilice Claude code desde la terminal. 99% del codigo fue hecho por claude
-Toda la arquitectura, orquestacion, analisis y reportes fue hecha por mi,
-además de estandares y buenas practicas de codigo (hago bastante hincapie en cuanto a eso).
+Utilicé Claude Code desde la terminal. 99% del código fue hecho por Claude.
+Toda la arquitectura, orquestación, análisis y reportes fue hecha por mí,
+además de estándares y buenas prácticas de código (hago bastante hincapié en cuanto a eso).
 
 ---
 
 ## Tiempo
 
-Traté de no excederme en el tiempo estipulado aun asi siendo sincero me excedi un poco.
-En cuanto al codigo puro estuvo bien (gracias ia), pero me excedi en cuanto al 
-analisis y completado de esta planilla. Aproximadamente una hora y media más.
-La razon fue la explicada mas arriba: la sospecha del resultado y la validacion extra que
-tuve que hacer mas toda la explicación para comunicar el resultado.
+Traté de no excederme en el tiempo estipulado, aun así, siendo sincero, me excedí un poco.
+En cuanto al código puro estuvo bien (gracias IA), pero me excedí en cuanto al
+análisis y completado de esta planilla. Aproximadamente una hora y media más.
+La razón fue la explicada más arriba: la sospecha del resultado y la validación extra que
+tuve que hacer, más toda la explicación para comunicar el resultado.
